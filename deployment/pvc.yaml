@@ -9,7 +9,7 @@ spec:
   volumeMode: Filesystem
   resources:
     requests:
-      storage: 2Gi
+      storage: 1Gi
   selector:
     matchLabels:
       app: "newsletter"
