@@ -1,0 +1,86 @@
+#!/bin/bash
+# Quick deployment checklist for k3s cluster
+
+set -e
+
+echo "🚀 k3s Full-Stack App Deployment Checklist"
+echo "==========================================="
+echo ""
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Check k3s cluster
+echo -e "${YELLOW}[1/7]${NC} Checking k3s cluster..."
+if kubectl cluster-info &> /dev/null; then
+    echo -e "${GREEN}✓${NC} Kubernetes cluster is running"
+else
+    echo -e "${RED}✗${NC} Kubernetes cluster not accessible. Start k3s first."
+    exit 1
+fi
+
+# Check namespace
+echo -e "${YELLOW}[2/7]${NC} Creating namespace fullstack-app..."
+kubectl create namespace fullstack-app --dry-run=client -o yaml | kubectl apply -f - > /dev/null
+echo -e "${GREEN}✓${NC} Namespace ready"
+
+# Check storage
+echo -e "${YELLOW}[3/7]${NC} Setting up storage..."
+kubectl apply -f deployment/pv.yaml > /dev/null
+kubectl apply -f deployment/pvc.yaml > /dev/null
+echo -e "${GREEN}✓${NC} Storage configured"
+
+# Check GHCR secret
+echo -e "${YELLOW}[4/7]${NC} Checking GHCR authentication..."
+if kubectl get secret ghcr-secret -n fullstack-app &> /dev/null; then
+    echo -e "${GREEN}✓${NC} GHCR secret exists"
+else
+    echo -e "${YELLOW}⚠${NC} GHCR secret not found. Creating..."
+    echo "Enter GitHub username (for GHCR): "
+    read GITHUB_USERNAME
+    echo "Enter GitHub PAT (Personal Access Token): "
+    read -s GITHUB_TOKEN
+    
+    kubectl create secret docker-registry ghcr-secret \
+        --docker-server=ghcr.io \
+        --docker-username=$GITHUB_USERNAME \
+        --docker-password=$GITHUB_TOKEN \
+        --namespace=fullstack-app
+    echo -e "${GREEN}✓${NC} GHCR secret created"
+fi
+
+# Apply config
+echo -e "${YELLOW}[5/7]${NC} Applying ConfigMap and Secrets..."
+kubectl apply -f deployment/configmap.yaml > /dev/null
+kubectl apply -f deployment/secrets.yaml > /dev/null
+echo -e "${GREEN}✓${NC} ConfigMap and Secrets applied"
+
+# Deploy database
+echo -e "${YELLOW}[6/7]${NC} Deploying MongoDB..."
+kubectl apply -f deployment/db-deployment.yaml > /dev/null
+kubectl rollout status deployment/db-deployment -n fullstack-app --timeout=5m
+echo -e "${GREEN}✓${NC} MongoDB deployed"
+
+# Deploy application
+echo -e "${YELLOW}[7/7]${NC} Deploying Backend and Frontend..."
+kubectl apply -f deployment/backend-deployment.yaml > /dev/null
+kubectl apply -f deployment/frontend-deployment.yaml > /dev/null
+kubectl rollout status deployment/backend-deployment -n fullstack-app --timeout=5m
+kubectl rollout status deployment/frontend-deployment -n fullstack-app --timeout=5m
+echo -e "${GREEN}✓${NC} Application deployed"
+
+echo ""
+echo -e "${GREEN}✅ Deployment Complete!${NC}"
+echo ""
+echo "Status:"
+kubectl get pods -n fullstack-app
+echo ""
+echo "Services:"
+kubectl get svc -n fullstack-app
+echo ""
+echo "To access frontend:"
+kubectl get svc frontend-service -n fullstack-app -o jsonpath='{.spec.ports[0].nodePort}'
+echo " (on cluster node IP)"

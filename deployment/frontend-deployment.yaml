@@ -13,9 +13,11 @@ spec:
       labels:
         app: frontend
     spec:
+      imagePullSecrets:
+      - name: ghcr-secret
       containers:
       - name: frontend
-        image: itsmdsameerkhan/newsletter-frontend:v1
+        image: ghcr.io/yourusername/fullstack-k8s-webapp/frontend:latest
         ports:
         - containerPort: 80
         resources:

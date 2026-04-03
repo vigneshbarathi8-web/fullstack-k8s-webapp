@@ -13,9 +13,11 @@ spec:
       labels:
         app: backend
     spec:
+      imagePullSecrets:
+      - name: ghcr-secret
       containers:
       - name: backend
-        image: itsmdsameerkhan/newsletter-backend:v1
+        image: ghcr.io/yourusername/fullstack-k8s-webapp/backend:latest
         ports:
         - containerPort: 9000
         env:
