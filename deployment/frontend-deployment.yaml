@@ -17,7 +17,7 @@ spec:
       - name: ghcr-secret
       containers:
       - name: frontend
-        image: ghcr.io/yourusername/fullstack-k8s-webapp/frontend:latest
+        image: ghcr.io/vigneshbarathi8-web/fullstack-k8s-webapp/frontend:latest
         ports:
         - containerPort: 80
         resources:
