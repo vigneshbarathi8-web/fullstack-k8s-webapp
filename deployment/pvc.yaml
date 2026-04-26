@@ -10,7 +10,4 @@ spec:
   resources:
     requests:
       storage: 1Gi
-  selector:
-    matchLabels:
-      app: "newsletter"
       
