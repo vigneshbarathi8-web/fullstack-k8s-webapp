@@ -85,7 +85,7 @@ jobs:
 
       - name: Apply storage configuration
         run: |
-          mkdir -p /mnt/data
+          # /mnt/data must exist on the cluster nodes (hostPath). Do not create it on the runner.
           kubectl apply -f deployment/pv.yaml
           kubectl apply -f deployment/pvc.yaml
 
