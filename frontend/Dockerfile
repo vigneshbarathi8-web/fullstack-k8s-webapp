@@ -10,7 +10,7 @@ RUN npm install
 # Copy the application code to the working directory
 COPY . .
 # Set an environment variable
-ENV VITE_PERSON_NAME=Sameer
+ENV VITE_PERSON_NAME=Vignesh
 # Run the build command
 RUN npm run build
 
