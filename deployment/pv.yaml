@@ -17,4 +17,6 @@ spec:
             - key: kubernetes.io/hostname
               operator: In
               values:
-                - vicky-workernode1 
+                - vicky-workernode1
+                - vicky-workernode2
+
